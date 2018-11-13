@@ -9,6 +9,9 @@ import common.IntServidorPartidasRMI;
 
 public class ImplServidorJuegoRMI extends UnicastRemoteObject implements IntServidorJuegoRMI {
 
+	
+	private static final long serialVersionUID = 1L;
+
 	public ImplServidorJuegoRMI() throws RemoteException{
 		super();
 	}

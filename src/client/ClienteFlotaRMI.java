@@ -7,8 +7,18 @@ import common.IntServidorJuegoRMI;
 import common.IntServidorPartidasRMI;
 
 public class ClienteFlotaRMI {
-	public static void main(String[] args) {
+
+	private IntServidorJuegoRMI intServidorJuegoRMI;
+
+	public static void main(String[] args) throws IOException, NotBoundException {
+		ClienteFlotaRMI cliente = new ClienteFlotaRMI();
+		cliente.run();
+	}
+
+	public void run() {
+
 		try {
+
 			int numPuerto;
 			String nombreNodo;
 			InputStreamReader ent = new InputStreamReader(System.in);
@@ -16,11 +26,12 @@ public class ClienteFlotaRMI {
 			System.out.println("Introduce el nombre del nodo del registro RMI: ");
 			nombreNodo = buf.readLine();
 			System.out.println("Introduce el numero de puerto del registro RMI: ");
-			numPuerto = Integer.parseInt(buf.readLine());
-			String URLRegistro = "rmi://localhost: "+numPuerto+ "/HundirLaFlota";
-			IntServidorJuegoRMI intServidorJuegoRMI = (IntServidorJuegoRMI) Naming.lookup(URLRegistro);
+			//numPuerto = Integer.parseInt(buf.readLine());
+			String URLRegistro = "rmi://localhost:1099/HundirLaFlota";
+			intServidorJuegoRMI = (IntServidorJuegoRMI) Naming.lookup(URLRegistro);
 			System.out.println("Busqueda completa");
-			IntServidorPartidasRMI nuevaPartida = intServidorJuegoRMI.nuevoServidorPartidas();	
+			IntServidorPartidasRMI nuevaPartida = intServidorJuegoRMI.nuevoServidorPartidas();
+
 		}catch (Exception e) {
 			System.out.println("Excepcion en ClienteFlotaRMI");
 		}
