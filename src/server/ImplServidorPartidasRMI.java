@@ -3,7 +3,6 @@ package server;
 import java.rmi.RemoteException;
 
 import common.IntServidorPartidasRMI;
-import common.Partida;
 
 public class ImplServidorPartidasRMI implements IntServidorPartidasRMI {
 		
