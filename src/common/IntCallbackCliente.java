@@ -1,7 +1,7 @@
 package common;
 import java.rmi.*;
 
-public interface IntCallbackCliente extends java.rmi.Remote{
+public interface IntCallbackCliente extends Remote{
 	
-	public void notificame(String mensaje) throws java.rmi.RemoteException;
+	public void notificame(String mensaje) throws RemoteException;
 }

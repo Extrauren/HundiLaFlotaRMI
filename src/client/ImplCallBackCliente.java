@@ -1,12 +1,13 @@
 package client;
 
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 import common.IntCallbackCliente;
 
-public class ImplCallBackCliente implements IntCallbackCliente{
+public class ImplCallBackCliente extends UnicastRemoteObject implements IntCallbackCliente{
 
-	ImplCallBackCliente(){
+	ImplCallBackCliente() throws RemoteException{
 		super();
 	}
 

@@ -11,7 +11,7 @@ import common.IntServidorPartidasRMI;
 public class ImplServidorJuegoRMI extends UnicastRemoteObject implements IntServidorJuegoRMI {
 
 
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 7984651231546889L;
 	private HashMap<String,IntCallbackCliente> mapaCallbacks;
 
 	public ImplServidorJuegoRMI() throws RemoteException{

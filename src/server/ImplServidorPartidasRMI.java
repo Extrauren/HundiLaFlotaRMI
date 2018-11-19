@@ -1,11 +1,16 @@
 package server;
 
 import java.rmi.RemoteException;
+import java.rmi.server.UnicastRemoteObject;
 
 import common.IntServidorPartidasRMI;
 
-public class ImplServidorPartidasRMI implements IntServidorPartidasRMI {
+public class ImplServidorPartidasRMI extends UnicastRemoteObject implements IntServidorPartidasRMI {
 		
+	/**
+	 * 
+	 */
+	private static final long serialVersionUID = 2201675140986398173L;
 	private Partida partida;
 	
 	public ImplServidorPartidasRMI() throws RemoteException{
@@ -31,7 +36,7 @@ public class ImplServidorPartidasRMI implements IntServidorPartidasRMI {
 	}
 
 	@Override
-	public String[] getSolucion() {
+	public String[] getSolucion() throws RemoteException {
 		// TODO Auto-generated method stub
 		return partida.getSolucion();
 	}
