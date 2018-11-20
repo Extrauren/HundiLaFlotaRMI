@@ -20,6 +20,7 @@ import javax.swing.JMenuItem;
 import javax.swing.JPanel;
 import javax.swing.SwingUtilities;
 
+import common.IntCallbackCliente;
 import common.IntServidorJuegoRMI;
 import common.IntServidorPartidasRMI;
 import server.Partida;
@@ -32,11 +33,10 @@ public class ClienteFlotaRMI {
 	public static final String PROPON="Proponer partida", BORRA="Borrar partida", LISTA="Listar partidas", ACEPTA="Aceptar partida";
 
 
-	private GuiTablero guiTablero=null;			// El juego se encarga de crear y modificar la interfaz gráfica
-	private Partida partida = null;                 
-	private static IntServidorPartidasRMI partida1 = null; 
-	private static IntServidorJuegoRMI serverPartidaEnJuego;			// Objeto con los datos de la partida en juego
-	private ImplCallBackCliente callB;
+	private GuiTablero guiTablero=null;			// El juego se encarga de crear y modificar la interfaz gráfica                 
+	private static IntServidorPartidasRMI partida = null; 
+
+	private IntCallbackCliente callB;
 	private String nombre;
 
 	private int quedan = NUMBARCOS, disparos = 0;
@@ -57,12 +57,10 @@ public class ClienteFlotaRMI {
 			String URLRegistro = "rmi://localhost:1099/HundirLaFlota";
 			intServidorJuegoRMI = (IntServidorJuegoRMI) Naming.lookup(URLRegistro);
 			System.out.println("Busqueda completa");
-			partida1 = intServidorJuegoRMI.nuevoServidorPartidas();
-			System.out.println("Busqueda completa patata");
-			partida1.nuevaPartida(NUMFILAS, NUMCOLUMNAS, NUMBARCOS);
+			partida = intServidorJuegoRMI.nuevoServidorPartidas();
+			System.out.println("Busqueda completa patata" + partida);
+			partida.nuevaPartida(NUMFILAS, NUMCOLUMNAS, NUMBARCOS);
 			callB = new ImplCallBackCliente ();
-
-			partida = new Partida(NUMFILAS, NUMCOLUMNAS, NUMBARCOS);
 			SwingUtilities.invokeLater(new Runnable() {
 				@Override
 				public void run() {
@@ -92,7 +90,6 @@ public class ClienteFlotaRMI {
 			this.numColumnas = numColumnas;
 			frame = new JFrame();
 			frame.setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
-			frame.addWindowListener(new EscuchadorVentana());
 		}
 
 		/**
@@ -236,7 +233,13 @@ public class ClienteFlotaRMI {
 					pintaBoton(buttons[i][j], Color.CYAN);
 				}
 			}
-			String solucion[]= partida.getSolucion();
+			String solucion[] = null;
+			try {
+				solucion = partida.getSolucion();
+			} catch (RemoteException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			for(String idBarco : solucion) {
 				pintaBarcoHundido(idBarco);
 			}
@@ -332,7 +335,12 @@ public class ClienteFlotaRMI {
 			if (comando.equals("Nueva Partida")) {				//Los comandos a realizar al pulsar cada boton de las opciones
 				quedan = NUMBARCOS;
 				disparos = 0;	        	   
-				partida = new Partida(NUMFILAS, NUMCOLUMNAS, NUMBARCOS);
+				try {
+					partida =  intServidorJuegoRMI.nuevoServidorPartidas();
+				} catch (RemoteException e1) {
+					// TODO Auto-generated catch block
+					e1.printStackTrace();
+				}
 				guiTablero.limpiaTablero();
 				guiTablero.cambiaEstado("Intentos: " + disparos + "    Barcos restantes: " + quedan);
 			}
@@ -343,6 +351,7 @@ public class ClienteFlotaRMI {
 				System.exit(0);		   
 				guiTablero.liberaRecursos();
 			}
+			
 		} // end actionPerformed
 
 	} // end class MenuListener
@@ -365,14 +374,25 @@ public class ClienteFlotaRMI {
 			boton = (JButton) e.getSource();
 			int fila = (Integer) boton.getClientProperty("fila");
 			int col = (Integer) boton.getClientProperty("col");
-			int estado = partida.pruebaCasilla(fila, col);
+			int estado = 0;
+			try {
+				estado = partida.pruebaCasilla(fila, col);
+			} catch (RemoteException e1) {
+				// TODO Auto-generated catch block
+				e1.printStackTrace();
+			}
 			if(!boton.getBackground().equals(Color.CYAN) && !boton.getBackground().equals( Color.ORANGE) &&  !boton.getBackground().equals(Color.RED) && quedan>0) {
 				if(estado == -1) {									//si es mar
 					guiTablero.pintaBoton(boton, Color.CYAN);
 				}else if( estado == -2) {							//si es tocado
 					guiTablero.pintaBoton(boton, Color.ORANGE);	
 				}else{												//si es un hundido
-					guiTablero.pintaBarcoHundido(partida.getBarco(estado));
+					try {
+						guiTablero.pintaBarcoHundido(partida.getBarco(estado));
+					} catch (RemoteException e1) {
+						// TODO Auto-generated catch block
+						e1.printStackTrace();
+					}
 					quedan--;
 				}
 			}
@@ -392,19 +412,29 @@ public class ClienteFlotaRMI {
 			try{
 				switch(e.getActionCommand()){
 				case PROPON:
-					if (serverPartidaEnJuego.proponPartida(nombre, callB))
-						System.out.println("Has propuesto una partida.");
-					else
-						System.out.println("Ya tienes propuesta una partida.");
+					try {
+						if(intServidorJuegoRMI.proponPartida(nombre, callB)){
+							System.out.println("Partida propuesta con �xito!");
+						}else{
+							System.out.println("Ha ocurrido un error al proponer una partida.");
+						}
+					} catch (RemoteException ex) {
+						ex.printStackTrace();
+					}
 					break;
 				case BORRA:
-					if (serverPartidaEnJuego.borraPartida(nombre))
-						System.out.println("Se ha borrado tu partida propuesta.");
-					else
-						System.out.println("No tenias ninguna partida propuesta.");					
+					try {
+						if (intServidorJuegoRMI.borraPartida(nombre))
+							System.out.println("Se ha borrado tu partida propuesta.");
+						else
+							System.out.println("No tenias ninguna partida propuesta.");		
+					} catch (RemoteException ex) {
+						ex.printStackTrace();
+					}		
 					break;
 				case LISTA:
-					String[] lista = serverPartidaEnJuego.listaPartidas();
+					try {
+					String[] lista = intServidorJuegoRMI.listaPartidas();
 					if (lista.length == 0) {
 						System.out.println("No hay partidas propuestas.");
 					}else {
@@ -414,38 +444,32 @@ public class ClienteFlotaRMI {
 						}
 						System.out.println("");
 					}
+					} catch (RemoteException ex) {
+						ex.printStackTrace();
+					}
 					break;
 				case ACEPTA:
+					try {
 					System.out.print("Introduce el nombre de partida que quieres aceptar: ");
 					Scanner sc = new Scanner(System.in);	
 					System.out.println("Introduce el otro nombre: ");
 					String otro = sc.nextLine();
 					if (otro.equals(nombre)) { //Se hace aqui la comprobacion para poder mostrar distintos mensajes.
 						System.out.println("No puedes aceptar tu propia partida.");
-					}else if (serverPartidaEnJuego.aceptaPartida(nombre, otro)) {
+					}else if (intServidorJuegoRMI.aceptaPartida(nombre, otro)) {
 						System.out.println("Has aceptado la partida de "+otro+".");
 					}else {
 						System.out.println("No se puede aceptar la partida de "+otro+". No hay partida o no esta en linea.");
+					}
+					} catch (RemoteException ex) {
+						ex.printStackTrace();
 					}
 					break;
 				}
 			}catch(Exception ex){
 				System.out.println("Exception MultijugadorListener.");
+				ex.printStackTrace();
 			}
 		}
 	}
-	private class EscuchadorVentana extends WindowAdapter {
-
-		@Override
-		public void windowClosing(WindowEvent e) {
-			try {
-				serverPartidaEnJuego.borraPartida(nombre);
-			}catch(RemoteException ex) {
-				ex.printStackTrace();
-			}
-			System.exit(0);
-		}
-
-	} 
-
 }
